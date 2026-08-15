@@ -34,13 +34,13 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
 1. Clone the repository into your Omarchy plugins directory:
    ```bash
    git clone https://github.com/Rizmi/omarchy-singbox-plugin.git \
-     ~/.config/omarchy/plugins/omarchy.singbox-vpn
+     ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
    ```
 
 2. Validate and enable the plugin on your status bar:
    ```bash
-   omarchy plugin validate ~/.config/omarchy/plugins/omarchy.singbox-vpn
-   omarchy plugin enable omarchy.singbox-vpn --section right
+   omarchy plugin validate ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
+   omarchy plugin enable io.github.rizmi.singbox-vpn --section right
    ```
 
 ---
@@ -48,8 +48,8 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
 ## Removal
 
 ```bash
-omarchy plugin disable omarchy.singbox-vpn
-rm -rf ~/.config/omarchy/plugins/omarchy.singbox-vpn
+omarchy plugin disable io.github.rizmi.singbox-vpn
+rm -rf ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
 omarchy-shell shell rescanPlugins
 ```
 
@@ -161,16 +161,16 @@ The widget automatically reads this file to populate the **SERVER NODE** dropdow
 
 ```bash
 # Check status
-omarchy-shell omarchy.singbox-vpn status
+omarchy-shell io.github.rizmi.singbox-vpn status
 
 # Fetch current public IP
-omarchy-shell omarchy.singbox-vpn ip
+omarchy-shell io.github.rizmi.singbox-vpn ip
 
 # Toggle VPN on / off
-omarchy-shell omarchy.singbox-vpn toggle
+omarchy-shell io.github.rizmi.singbox-vpn toggle
 
 # Refresh status and IP
-omarchy-shell omarchy.singbox-vpn refresh
+omarchy-shell io.github.rizmi.singbox-vpn refresh
 ```
 
 ---
@@ -178,7 +178,7 @@ omarchy-shell omarchy.singbox-vpn refresh
 ## File Structure
 
 ```
-~/.config/omarchy/plugins/omarchy.singbox-vpn/
+~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn/
 ├── Panel.qml        # QML widget UI, popup panel & IPC handler
 ├── Service.qml      # Background service logic & process manager
 ├── Model.js         # Configuration parser and serializer

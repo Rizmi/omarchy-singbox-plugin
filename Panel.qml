@@ -8,8 +8,8 @@ import "Model.js" as Model
 
 Panel {
   id: root
-  moduleName: "omarchy.singbox-vpn"
-  ipcTarget: "omarchy.singbox-vpn"
+  moduleName: "io.github.rizmi.singbox-vpn"
+  ipcTarget: "io.github.rizmi.singbox-vpn"
   manageIpc: false
 
   readonly property color foreground: bar ? bar.foreground : Color.foreground
