@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "poppy.singbox-vpn",
+  "name": "sing-box VPN",
+  "version": "1.0.0",
+  "author": "Poppy",
+  "license": "MIT",
+  "description": "Connect/disconnect sing-box VPN directly from the Omarchy bar.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Panel.qml" },
+  "barWidget": {
+    "displayName": "sing-box VPN",
+    "description": "Toggle sing-box VPN.",
+    "category": "Network",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalSec": 2
+    },
+    "schema": [
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 2,
+        "max": 60,
+        "step": 1,
+        "defaultValue": 2
+      }
+    ]
+  }
+}
