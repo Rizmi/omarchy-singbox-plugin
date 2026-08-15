@@ -4,7 +4,7 @@ A lightweight, modern, and native [Omarchy](https://omarchy.org/) status bar wid
 
 ---
 
-## 📋 Requirements & Prerequisites
+## Requirements & Prerequisites
 
 Before installing the widget, ensure your system has:
 
@@ -21,7 +21,7 @@ Before installing the widget, ensure your system has:
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Option 1: Using `omarchy plugin` (Recommended)
 
@@ -34,18 +34,28 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
 1. Clone the repository into your Omarchy plugins directory:
    ```bash
    git clone https://github.com/Rizmi/omarchy-singbox-plugin.git \
-     ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
+     ~/.config/omarchy/plugins/omarchy.singbox-vpn
    ```
 
 2. Validate and enable the plugin on your status bar:
    ```bash
-   omarchy plugin validate ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
-   omarchy plugin enable io.github.rizmi.singbox-vpn --section right
+   omarchy plugin validate ~/.config/omarchy/plugins/omarchy.singbox-vpn
+   omarchy plugin enable omarchy.singbox-vpn --section right
    ```
 
 ---
 
-## ⚙️ Initial System Setup
+## Removal
+
+```bash
+omarchy plugin disable omarchy.singbox-vpn
+rm -rf ~/.config/omarchy/plugins/omarchy.singbox-vpn
+omarchy-shell shell rescanPlugins
+```
+
+---
+
+## Initial System Setup
 
 To allow the widget to start/stop the proxy and switch configs seamlessly without asking for root passwords each time, run these two quick setup steps once:
 
@@ -78,7 +88,7 @@ sudo chmod 664 /etc/sing-box/config.json
 
 ---
 
-## 📁 Managing Proxy Nodes & Profiles
+## Managing Proxy Nodes & Profiles
 
 Your proxy profiles are saved in:
 ```
@@ -135,36 +145,50 @@ The widget automatically reads this file to populate the **SERVER NODE** dropdow
 
 ---
 
-## 🖱️ Usage
+## Usage
 
 * **Left-click** bar icon: Open / close popup panel.
 * **Right-click** bar icon: Force refresh status & public IP.
 * **Middle-click** bar icon: Quick toggle connect / disconnect.
 * **Popup Panel**:
   * **Power Switch**: Start / stop the sing-box TUN service.
-  * **Public IP Row**: View current IP or click `󰑐` to re-fetch.
+  * **Public IP Row**: View current IP or click the refresh button to re-fetch.
   * **Server Node**: Select active node (automatically applies and reloads).
 
 ---
 
-## ⌨️ Shell IPC Commands
+## Shell IPC Commands
 
 ```bash
 # Check status
-omarchy-shell io.github.rizmi.singbox-vpn status
+omarchy-shell omarchy.singbox-vpn status
 
 # Fetch current public IP
-omarchy-shell io.github.rizmi.singbox-vpn ip
+omarchy-shell omarchy.singbox-vpn ip
 
 # Toggle VPN on / off
-omarchy-shell io.github.rizmi.singbox-vpn toggle
+omarchy-shell omarchy.singbox-vpn toggle
 
 # Refresh status and IP
-omarchy-shell io.github.rizmi.singbox-vpn refresh
+omarchy-shell omarchy.singbox-vpn refresh
 ```
 
 ---
 
-## 📄 License
+## File Structure
+
+```
+~/.config/omarchy/plugins/omarchy.singbox-vpn/
+├── Panel.qml        # QML widget UI, popup panel & IPC handler
+├── Service.qml      # Background service logic & process manager
+├── Model.js         # Configuration parser and serializer
+├── manifest.json    # Omarchy plugin manifest and settings schema
+├── README.md        # Documentation and usage guide
+└── LICENSE          # MIT License
+```
+
+---
+
+## License
 
 MIT — see [LICENSE](LICENSE).
