@@ -63,7 +63,8 @@ function buildSingBoxConfig(profile) {
     "tag": "proxy",
     "server": profile.server,
     "server_port": profile.server_port || 443,
-    "uuid": profile.uuid
+    "uuid": profile.uuid,
+    "domain_resolver": "local-dns"
   };
 
   if (profile.security === "tls" || profile.security === "reality" || profile.sni) {
@@ -80,25 +81,24 @@ function buildSingBoxConfig(profile) {
 
   var config = {
     "log": {
-      "level": "info"
+      "level": "warn"
     },
     "dns": {
       "servers": [
         {
           "tag": "remote-dns",
-          "type": "udp",
+          "type": "tcp",
           "server": "8.8.8.8",
           "detour": "proxy"
         },
         {
           "tag": "local-dns",
-          "type": "udp",
-          "server": "1.1.1.1"
+          "type": "local",
+          "detour": "direct"
         }
       ],
       "final": "remote-dns",
-      "strategy": "ipv4_only",
-      "independent_cache": true
+      "strategy": "ipv4_only"
     },
     "inbounds": [
       {
@@ -108,7 +108,8 @@ function buildSingBoxConfig(profile) {
           "172.19.0.1/30"
         ],
         "auto_route": true,
-        "strict_route": true
+        "strict_route": false,
+        "stack": "mixed"
       }
     ],
     "outbounds": [
@@ -123,8 +124,19 @@ function buildSingBoxConfig(profile) {
       "default_domain_resolver": "local-dns",
       "rules": [
         {
+          "action": "sniff"
+        },
+        {
+          "protocol": "dns",
+          "action": "hijack-dns"
+        },
+        {
           "port": 53,
           "action": "hijack-dns"
+        },
+        {
+          "ip_is_private": true,
+          "outbound": "direct"
         }
       ]
     }

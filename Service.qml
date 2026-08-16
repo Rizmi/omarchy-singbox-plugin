@@ -38,7 +38,7 @@ Item {
     return opts
   }
 
-  readonly property string profilesFile: Quickshell.env("HOME") + "/.config/omarchy/singbox-profiles.json"
+  readonly property string profilesFile: Quickshell.env("HOME") + "/.config/sing-box/profiles.json"
 
   function refresh() {
     if (!stateProcess.running) {
@@ -64,6 +64,12 @@ Item {
 
   function toggle() {
     if (busy) return
+    if (!active && profiles.length === 0) {
+      lastError = "No nodes configured. Add a VLESS node first."
+      actionStatus = lastError
+      actionStatusTimer.restart()
+      return
+    }
     var targetState = !active
     actionStatus = targetState ? "Connecting..." : "Disconnecting..."
     triggerSettledIpFetch(targetState ? "Connecting..." : "Disconnecting...")
@@ -92,7 +98,8 @@ Item {
     if (!profile) return
 
     var cfgStr = Model.buildSingBoxConfig(profile)
-    saveProcess.command = ["bash", "-c", "echo '" + cfgStr.replace(/'/g, "'\\''") + "' > /etc/sing-box/config.json && (systemctl is-active sing-box >/dev/null && systemctl restart sing-box || true)"]
+    saveProcess.environment = { "SINGBOX_CFG": cfgStr }
+    saveProcess.command = ["bash", "-c", "printf '%s\\n' \"$SINGBOX_CFG\" > /etc/sing-box/config.json && (systemctl is-active sing-box >/dev/null && systemctl restart sing-box || true)"]
     actionStatus = "Applying " + profile.name + "..."
     triggerSettledIpFetch("Switching node...")
     saveProcess.running = true
@@ -154,8 +161,9 @@ Item {
       currentProfileId: currentProfileId,
       profiles: profiles
     }, null, 2)
-    var cmd = ["bash", "-c", "mkdir -p ~/.config/omarchy && echo '" + data.replace(/'/g, "'\\''") + "' > " + profilesFile]
-    Process.exec(cmd)
+    profileSaveProcess.environment = { "SINGBOX_PROFILES": data }
+    profileSaveProcess.command = ["bash", "-c", "mkdir -p ~/.config/sing-box && printf '%s\\n' \"$SINGBOX_PROFILES\" > '" + profilesFile + "' && chmod 600 '" + profilesFile + "'"]
+    profileSaveProcess.running = true
   }
 
   function loadProfilesFromDisk() {
@@ -278,5 +286,11 @@ Item {
         root.saveProfilesToDisk()
       }
     }
+  }
+
+  Process {
+    id: profileSaveProcess
+    running: false
+    command: []
   }
 }

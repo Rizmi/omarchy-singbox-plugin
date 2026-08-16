@@ -8,8 +8,8 @@ import "Model.js" as Model
 
 Panel {
   id: root
-  moduleName: "poppy.singbox-vpn"
-  ipcTarget: "poppy.singbox-vpn"
+  moduleName: "io.github.rizmi.singbox-vpn"
+  ipcTarget: "io.github.rizmi.singbox-vpn"
   manageIpc: false
 
   readonly property color foreground: bar ? bar.foreground : Color.foreground
@@ -19,6 +19,7 @@ Panel {
   readonly property color iconColor: singbox.active ? foreground : dim
   readonly property color barIconColor: singbox.active ? barForeground : Qt.darker(barForeground, 1.55)
   readonly property string toggleHint: singbox.active ? "Disconnect" : "Connect"
+  property bool addNodeExpanded: false
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
@@ -32,6 +33,7 @@ Panel {
     if (opened) {
       singbox.refresh()
       singbox.fetchPublicIp(false)
+      root.addNodeExpanded = false
       Qt.callLater(function() { keyCatcher.forceActiveFocus() })
     }
   }
@@ -75,12 +77,12 @@ Panel {
     open: root.opened
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(320))
-    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(360))
+    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(480))
 
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: nodePicker.popupOpen
+      blocked: nodePicker.popupOpen || vlessInput.activeFocus
       onCloseRequested: root.close()
       onTextKey: function(t) {
         if (t === "r" || t === "R") {
@@ -217,14 +219,10 @@ Panel {
           wrapMode: Text.WordWrap
         }
 
-        PanelSeparator {
-          visible: singbox.profiles.length > 1
-          foreground: root.foreground
-        }
+        PanelSeparator { foreground: root.foreground }
 
         // Node selector section
         Column {
-          visible: singbox.profiles.length > 1
           width: parent.width
           spacing: Style.space(8)
 
@@ -238,11 +236,133 @@ Panel {
             id: nodePicker
             width: parent.width
             showLabel: false
-            placeholderText: "Select server node..."
+            placeholderText: singbox.profiles.length > 0 ? "Select server node..." : "No nodes configured"
             fontFamily: root.fontFamily
             options: singbox.nodeOptions
             value: singbox.currentProfileId
             onChanged: function(v) { singbox.selectProfile(v) }
+          }
+        }
+
+        PanelSeparator { foreground: root.foreground }
+
+        // Expandable Add Node section
+        Rectangle {
+          width: parent.width
+          height: Style.space(32)
+          color: addNodeBtnArea.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.12) : "transparent"
+          radius: Style.space(6)
+
+          RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Style.space(4)
+            anchors.rightMargin: Style.space(4)
+            spacing: Style.space(8)
+
+            Text {
+              text: "󰐕"
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.body
+              Layout.alignment: Qt.AlignVCenter
+            }
+
+            Text {
+              text: "Add VLESS Node"
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.bodySmall
+              Layout.alignment: Qt.AlignVCenter
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Text {
+              text: root.addNodeExpanded ? "▲" : "▼"
+              color: root.dim
+              font.pixelSize: Style.font.bodySmall
+              Layout.alignment: Qt.AlignVCenter
+            }
+          }
+
+          MouseArea {
+            id: addNodeBtnArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.addNodeExpanded = !root.addNodeExpanded
+          }
+        }
+
+        Column {
+          width: parent.width
+          spacing: Style.space(8)
+          visible: root.addNodeExpanded
+          clip: true
+
+          Rectangle {
+            width: parent.width
+            height: Style.space(36)
+            color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.06)
+            radius: Style.space(6)
+            border.color: vlessInput.activeFocus ? root.foreground : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.15)
+            border.width: 1
+
+            TextInput {
+              id: vlessInput
+              anchors.fill: parent
+              anchors.leftMargin: Style.space(10)
+              anchors.rightMargin: Style.space(10)
+              verticalAlignment: Text.AlignVCenter
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.bodySmall
+              selectByMouse: true
+
+              Text {
+                text: "Paste vless:// link..."
+                color: root.dim
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.bodySmall
+                visible: vlessInput.text === "" && !vlessInput.activeFocus
+                anchors.verticalCenter: parent.verticalCenter
+              }
+
+              onAccepted: addBtn.doAdd()
+            }
+          }
+
+          Rectangle {
+            id: addBtn
+            width: parent.width
+            height: Style.space(32)
+            color: addBtnArea.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.2) : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.1)
+            radius: Style.space(6)
+
+            function doAdd() {
+              if (vlessInput.text.trim() === "") return
+              if (singbox.addProfile(vlessInput.text.trim())) {
+                vlessInput.text = ""
+                root.addNodeExpanded = false
+              }
+            }
+
+            Text {
+              anchors.centerIn: parent
+              text: "Import & Apply"
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.bodySmall
+              font.bold: true
+            }
+
+            MouseArea {
+              id: addBtnArea
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: addBtn.doAdd()
+            }
           }
         }
       }
