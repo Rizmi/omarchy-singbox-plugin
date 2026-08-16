@@ -108,8 +108,8 @@ function buildSingBoxConfig(profile) {
           "172.19.0.1/30"
         ],
         "auto_route": true,
-        "strict_route": false,
-        "stack": "mixed"
+        "strict_route": true,
+        "stack": "system"
       }
     ],
     "outbounds": [
@@ -117,6 +117,10 @@ function buildSingBoxConfig(profile) {
       {
         "type": "direct",
         "tag": "direct"
+      },
+      {
+        "type": "block",
+        "tag": "block"
       }
     ],
     "route": {
@@ -133,6 +137,17 @@ function buildSingBoxConfig(profile) {
         {
           "port": 53,
           "action": "hijack-dns"
+        },
+        {
+          "ip_cidr": [
+            "172.19.0.0/30",
+            "127.0.0.0/8"
+          ],
+          "outbound": "block"
+        },
+        {
+          "network": "icmp",
+          "outbound": "direct"
         },
         {
           "ip_is_private": true,

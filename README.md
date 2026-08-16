@@ -93,13 +93,10 @@ sudo chmod 775 /etc/sing-box
 > **Note:** The directory and config file are group-writable by `wheel` (your admin group). The sing-box service reads the config as root, so no ownership change to your user is needed. Your user account must be a member of the `wheel` group (standard on Omarchy/Arch).
 
 ### 3. Firewall Configuration (If using UFW)
-If you have **UFW firewall** enabled, allow bridged traffic on the `tun0` adapter so your proxy connection is not blocked:
+If you have **UFW firewall** enabled, allow incoming packets on the `tun0` adapter so returned web and DNS responses from the proxy are not dropped:
 
 ```bash
 sudo ufw allow in on tun0
-sudo ufw allow out on tun0
-sudo ufw route allow in on tun0
-sudo ufw route allow out on tun0
 sudo ufw reload
 ```
 
@@ -211,7 +208,7 @@ omarchy-shell io.github.rizmi.singbox-vpn refresh
 ## Troubleshooting
  
 * **"Fetching IP..." or timeout on connection**:
-  * Ensure UFW firewall has `tun0` allowed (`sudo ufw allow in on tun0 && sudo ufw allow out on tun0`).
+  * Ensure UFW firewall allows `tun0` inbound traffic (`sudo ufw allow in on tun0 && sudo ufw reload`).
   * Check if your VLESS server domain resolves properly (`ping <server-domain>`).
   * If using self-signed or expired certificates, ensure `allowInsecure: true` is enabled in the profile.
   * Check live service logs: `journalctl -u sing-box -f`.
