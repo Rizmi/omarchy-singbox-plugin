@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "io.github.rizmi.singbox-vpn",
+  "id": "poppy.singbox-vpn",
   "name": "sing-box VPN",
   "version": "1.0.0",
-  "author": "Omarchy Community",
+  "author": "Poppy",
   "license": "MIT",
   "description": "Connect/disconnect sing-box VPN directly from the Omarchy bar.",
   "kinds": ["bar-widget"],

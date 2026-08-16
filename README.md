@@ -4,16 +4,16 @@ A lightweight, modern, and native [Omarchy](https://omarchy.org/) status bar wid
 
 ---
 
-## Requirements & Prerequisites
+## 📋 Requirements & Prerequisites
 
 Before installing the widget, ensure your system has:
 
 1. **Omarchy Linux** with Quickshell status bar (`omarchy plugin` / `omarchy bar` CLI available).
-2. **`sing-box`** installed (available via AUR):
+2. **`sing-box`** installed:
    ```bash
-   yay -S sing-box
-   # or using paru / another AUR helper:
-   # paru -S sing-box
+   sudo pacman -S sing-box
+   # or via Omarchy package helper:
+   # omarchy pkg add sing-box
    ```
 3. **`curl`** (standard on Omarchy, used for public IP detection via ipify / ifconfig.me).
 4. **Linux Kernel TUN Module** (built into the default Arch Linux / Omarchy kernel).
@@ -21,7 +21,7 @@ Before installing the widget, ensure your system has:
 
 ---
 
-## Installation
+## 🚀 Installation
 
 ### Option 1: Using `omarchy plugin` (Recommended)
 
@@ -45,17 +45,7 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
 
 ---
 
-## Removal
-
-```bash
-omarchy plugin disable io.github.rizmi.singbox-vpn
-rm -rf ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
-omarchy-shell shell rescanPlugins
-```
-
----
-
-## Initial System Setup
+## ⚙️ Initial System Setup
 
 To allow the widget to start/stop the proxy and switch configs seamlessly without asking for root passwords each time, run these two quick setup steps once:
 
@@ -75,38 +65,29 @@ EOF
 chmod 644 /etc/polkit-1/rules.d/50-sing-box.rules'
 ```
 
-### 2. Configuration File Write Access
-Allow your user to update the sing-box configuration without full ownership of the system directory:
+### 2. Configuration File Permissions
+Allow your user to write the compiled sing-box configuration to `/etc/sing-box/`:
 
 ```bash
 sudo mkdir -p /etc/sing-box
+sudo chown -R $USER:sing-box /etc/sing-box
+sudo chmod 775 /etc/sing-box
 sudo touch /etc/sing-box/config.json
 sudo chmod 664 /etc/sing-box/config.json
-sudo chgrp wheel /etc/sing-box /etc/sing-box/config.json
-sudo chmod 775 /etc/sing-box
 ```
-
-> **Note:** The directory and config file are group-writable by `wheel` (your admin group). The sing-box service reads the config as root, so no ownership change to your user is needed. Your user account must be a member of the `wheel` group (standard on Omarchy/Arch).
 
 ---
 
-## Managing Proxy Nodes & Profiles
+## 📁 Managing Proxy Nodes & Profiles
 
-You can add and manage proxy servers in two ways:
+Your proxy profiles are saved in:
+```
+~/.config/omarchy/singbox-profiles.json
+```
 
-1. **Directly in the Popup Panel (Recommended)**:
-   * Open the widget panel from your status bar.
-   * Click **Add VLESS Node**.
-   * Paste any `vless://...` link and click **Import & Apply**.
+The widget automatically reads this file to populate the **SERVER NODE** dropdown.
 
-2. **Editing `profiles.json`**:
-   * Proxy profiles are saved at:
-     ```
-     ~/.config/sing-box/profiles.json
-     ```
-   * On first run, a default sample template is automatically created here for reference.
-
-### Example `profiles.json`
+### Example `singbox-profiles.json`
 
 ```json
 {
@@ -154,28 +135,19 @@ You can add and manage proxy servers in two ways:
 
 ---
 
-## Security Notes
-
-* **Credential protection**: VLESS credentials and configuration data are passed to subprocesses via environment variables rather than command-line arguments. This prevents exposure through local process inspection (`/proc/<pid>/cmdline`).
-* **Profile file permissions**: The profiles file (`~/.config/sing-box/profiles.json`) is written with mode `600` (owner read/write only) to protect stored credentials.
-* **System config access**: The `/etc/sing-box/config.json` file is group-writable by `wheel` rather than user-owned, limiting write access to admin group members only.
-
----
-
-## Usage
+## 🖱️ Usage
 
 * **Left-click** bar icon: Open / close popup panel.
 * **Right-click** bar icon: Force refresh status & public IP.
 * **Middle-click** bar icon: Quick toggle connect / disconnect.
 * **Popup Panel**:
   * **Power Switch**: Start / stop the sing-box TUN service.
-  * **Public IP Row**: View current IP or click the refresh button to re-fetch.
+  * **Public IP Row**: View current IP or click `󰑐` to re-fetch.
   * **Server Node**: Select active node (automatically applies and reloads).
-  * **Add VLESS Node**: Expandable section to paste and import any `vless://` link directly from the panel.
 
 ---
 
-## Shell IPC Commands
+## ⌨️ Shell IPC Commands
 
 ```bash
 # Check status
@@ -193,20 +165,6 @@ omarchy-shell io.github.rizmi.singbox-vpn refresh
 
 ---
 
-## File Structure
-
-```
-~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn/
-├── Panel.qml        # QML widget UI, popup panel & IPC handler
-├── Service.qml      # Background service logic & process manager
-├── Model.js         # Configuration parser and serializer
-├── manifest.json    # Omarchy plugin manifest and settings schema
-├── README.md        # Documentation and usage guide
-└── LICENSE          # MIT License
-```
-
----
-
-## License
+## 📄 License
 
 MIT — see [LICENSE](LICENSE).
