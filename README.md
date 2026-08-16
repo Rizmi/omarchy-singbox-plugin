@@ -23,6 +23,8 @@ Before installing the widget, ensure your system has:
 
 ## Installation
 
+> **Important:** After installing, make sure to follow the **[Initial System Setup](#initial-system-setup)** section below to configure required permissions and file access.
+
 ### Option 1: Using `omarchy plugin` (Recommended)
 
 ```bash
@@ -42,6 +44,8 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
    omarchy plugin validate ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
    omarchy plugin enable io.github.rizmi.singbox-vpn --section right
    ```
+
+3. Follow the **[Initial System Setup](#initial-system-setup)** section below to complete configuration.
 
 ---
 

@@ -138,7 +138,6 @@ Panel {
           width: parent.width
           height: Style.space(38)
           color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.07)
-          radius: Style.space(6)
 
           RowLayout {
             anchors.fill: parent
@@ -176,7 +175,6 @@ Panel {
             Rectangle {
               width: Style.space(26)
               height: Style.space(26)
-              radius: Style.space(4)
               color: ipRefreshMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.15) : "transparent"
               Layout.alignment: Qt.AlignVCenter
 
@@ -251,7 +249,6 @@ Panel {
           width: parent.width
           height: Style.space(32)
           color: addNodeBtnArea.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.12) : "transparent"
-          radius: Style.space(6)
 
           RowLayout {
             anchors.fill: parent
@@ -304,7 +301,6 @@ Panel {
             width: parent.width
             height: Style.space(36)
             color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.06)
-            radius: Style.space(6)
             border.color: vlessInput.activeFocus ? root.foreground : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.15)
             border.width: 1
 
@@ -337,7 +333,6 @@ Panel {
             width: parent.width
             height: Style.space(32)
             color: addBtnArea.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.2) : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.1)
-            radius: Style.space(6)
 
             function doAdd() {
               if (vlessInput.text.trim() === "") return
