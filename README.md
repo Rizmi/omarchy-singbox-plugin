@@ -2,6 +2,10 @@
 
 A lightweight, modern, and native [Omarchy](https://omarchy.org/) status bar widget to control **sing-box** transparent proxy (TUN) connections directly from your desktop bar.
 
+<div align="center">
+  <img width="330" height="390" alt="sing-box VPN Preview" src="https://imglink.cc/cdn/7d8dxdWbDB.png" />
+</div>
+
 ---
 
 ## Requirements & Prerequisites
