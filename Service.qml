@@ -105,10 +105,10 @@ Item {
     saveProcess.running = true
   }
 
-  function addProfile(vlessLink) {
-    var parsed = Model.parseVless(vlessLink)
+  function addProfile(nodeLink) {
+    var parsed = Model.parseNodeLink(nodeLink)
     if (!parsed) {
-      lastError = "Invalid VLESS link format"
+      lastError = "Unsupported link format (use vless://, vmess://, trojan://, ss://, or hy2://)"
       actionStatus = lastError
       actionStatusTimer.restart()
       return false

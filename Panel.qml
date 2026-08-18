@@ -82,7 +82,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: nodePicker.popupOpen || vlessInput.activeFocus
+      blocked: nodePicker.popupOpen || nodeInput.activeFocus
       onCloseRequested: root.close()
       onTextKey: function(t) {
         if (t === "r" || t === "R") {
@@ -265,7 +265,7 @@ Panel {
             }
 
             Text {
-              text: "Add VLESS Node"
+              text: "Add Node"
               color: root.foreground
               font.family: root.fontFamily
               font.pixelSize: Style.font.bodySmall
@@ -301,11 +301,11 @@ Panel {
             width: parent.width
             height: Style.space(36)
             color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.06)
-            border.color: vlessInput.activeFocus ? root.foreground : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.15)
+            border.color: nodeInput.activeFocus ? root.foreground : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.15)
             border.width: 1
 
             TextInput {
-              id: vlessInput
+              id: nodeInput
               anchors.fill: parent
               anchors.leftMargin: Style.space(10)
               anchors.rightMargin: Style.space(10)
@@ -316,11 +316,11 @@ Panel {
               selectByMouse: true
 
               Text {
-                text: "Paste vless:// link..."
+                text: "Paste vless://, vmess://, trojan://, ss://, or hy2:// link..."
                 color: root.dim
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall
-                visible: vlessInput.text === "" && !vlessInput.activeFocus
+                visible: nodeInput.text === "" && !nodeInput.activeFocus
                 anchors.verticalCenter: parent.verticalCenter
               }
 
@@ -335,9 +335,9 @@ Panel {
             color: addBtnArea.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.2) : Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.1)
 
             function doAdd() {
-              if (vlessInput.text.trim() === "") return
-              if (singbox.addProfile(vlessInput.text.trim())) {
-                vlessInput.text = ""
+              if (nodeInput.text.trim() === "") return
+              if (singbox.addProfile(nodeInput.text.trim())) {
+                nodeInput.text = ""
                 root.addNodeExpanded = false
               }
             }

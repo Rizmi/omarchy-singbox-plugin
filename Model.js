@@ -1,3 +1,9 @@
+.import "ParseVless.js" as Vless
+.import "ParseVmess.js" as Vmess
+.import "ParseTrojan.js" as Trojan
+.import "ParseShadowsocks.js" as Shadowsocks
+.import "ParseHysteria2.js" as Hysteria2
+
 function parseJson(str) {
   try {
     return JSON.parse(str);
@@ -6,78 +12,127 @@ function parseJson(str) {
   }
 }
 
-function parseVless(link) {
+// Universal link parser — detects protocol from URI scheme
+function parseNodeLink(link) {
   link = String(link || "").trim();
-  if (!link.startsWith("vless://")) return null;
-  var withoutScheme = link.substring(8);
-  var hashIdx = withoutScheme.indexOf("#");
-  var tag = "VLESS Node";
-  if (hashIdx !== -1) {
-    try {
-      tag = decodeURIComponent(withoutScheme.substring(hashIdx + 1));
-    } catch(e) {
-      tag = withoutScheme.substring(hashIdx + 1);
-    }
-    withoutScheme = withoutScheme.substring(0, hashIdx);
-  }
-  var queryIdx = withoutScheme.indexOf("?");
-  var params = {};
-  if (queryIdx !== -1) {
-    var qs = withoutScheme.substring(queryIdx + 1);
-    withoutScheme = withoutScheme.substring(0, queryIdx);
-    var parts = qs.split("&");
-    for (var i = 0; i < parts.length; i++) {
-      var kv = parts[i].split("=");
-      if (kv.length === 2) {
-        params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]);
-      }
-    }
-  }
-  var atIdx = withoutScheme.indexOf("@");
-  if (atIdx === -1) return null;
-  var uuid = withoutScheme.substring(0, atIdx);
-  var hostPort = withoutScheme.substring(atIdx + 1);
-  var colonIdx = hostPort.lastIndexOf(":");
-  var server = colonIdx !== -1 ? hostPort.substring(0, colonIdx) : hostPort;
-  var port = colonIdx !== -1 ? parseInt(hostPort.substring(colonIdx + 1), 10) : 443;
+  if (link.startsWith("vless://"))     return Vless.parseVless(link);
+  if (link.startsWith("vmess://"))     return Vmess.parseVmess(link);
+  if (link.startsWith("trojan://"))    return Trojan.parseTrojan(link);
+  if (link.startsWith("ss://"))        return Shadowsocks.parseShadowsocks(link);
+  if (link.startsWith("hy2://"))       return Hysteria2.parseHysteria2(link);
+  if (link.startsWith("hysteria2://")) return Hysteria2.parseHysteria2(link);
+  return null;
+}
 
-  return {
-    id: uuid.substring(0, 8) + "@" + server + ":" + port,
-    name: tag || (server + ":" + port),
-    type: "vless",
-    server: server,
-    server_port: port,
-    uuid: uuid,
-    security: params.security || "none",
-    sni: params.sni || server,
-    insecure: params.allowInsecure === "true" || params.allowInsecure === "1",
-    flow: params.flow || "",
-    raw: link
-  };
+// Keep backward compat
+function parseVless(link) { return Vless.parseVless(link); }
+
+function buildOutbound(profile) {
+  if (!profile) return null;
+  var type = profile.type || "vless";
+
+  if (type === "vless") {
+    var ob = {
+      "type": "vless",
+      "tag": "proxy",
+      "server": profile.server,
+      "server_port": profile.server_port || 443,
+      "uuid": profile.uuid,
+      "domain_resolver": "local-dns"
+    };
+    if (profile.security === "tls" || profile.security === "reality" || profile.sni) {
+      ob.tls = { "enabled": true, "server_name": profile.sni || profile.server, "insecure": !!profile.insecure };
+    }
+    if (profile.flow) ob.flow = profile.flow;
+    return ob;
+  }
+
+  if (type === "vmess") {
+    var ob = {
+      "type": "vmess",
+      "tag": "proxy",
+      "server": profile.server,
+      "server_port": profile.server_port || 443,
+      "uuid": profile.uuid,
+      "security": profile.security || "auto",
+      "alter_id": profile.alterId || 0,
+      "domain_resolver": "local-dns"
+    };
+    if (profile.tls) {
+      ob.tls = { "enabled": true, "server_name": profile.sni || profile.server, "insecure": !!profile.insecure };
+    }
+    if (profile.transport === "ws") {
+      ob.transport = { "type": "ws" };
+      if (profile.wsPath) ob.transport.path = profile.wsPath;
+      if (profile.wsHost) ob.transport.headers = { "Host": profile.wsHost };
+    } else if (profile.transport === "grpc") {
+      ob.transport = { "type": "grpc" };
+      if (profile.grpcServiceName) ob.transport.service_name = profile.grpcServiceName;
+    } else if (profile.transport === "h2" || profile.transport === "http") {
+      ob.transport = { "type": "http" };
+      if (profile.h2Host) ob.transport.host = [profile.h2Host];
+      if (profile.h2Path) ob.transport.path = profile.h2Path;
+    }
+    return ob;
+  }
+
+  if (type === "trojan") {
+    var ob = {
+      "type": "trojan",
+      "tag": "proxy",
+      "server": profile.server,
+      "server_port": profile.server_port || 443,
+      "password": profile.password,
+      "domain_resolver": "local-dns",
+      "tls": {
+        "enabled": true,
+        "server_name": profile.sni || profile.server,
+        "insecure": !!profile.insecure
+      }
+    };
+    return ob;
+  }
+
+  if (type === "shadowsocks") {
+    var ob = {
+      "type": "shadowsocks",
+      "tag": "proxy",
+      "server": profile.server,
+      "server_port": profile.server_port || 8388,
+      "method": profile.method,
+      "password": profile.password,
+      "domain_resolver": "local-dns"
+    };
+    return ob;
+  }
+
+  if (type === "hysteria2") {
+    var ob = {
+      "type": "hysteria2",
+      "tag": "proxy",
+      "server": profile.server,
+      "server_port": profile.server_port || 443,
+      "password": profile.password,
+      "domain_resolver": "local-dns",
+      "tls": {
+        "enabled": true,
+        "server_name": profile.sni || profile.server,
+        "insecure": !!profile.insecure
+      }
+    };
+    if (profile.obfs) {
+      ob.obfs = { "type": profile.obfs };
+      if (profile.obfsPassword) ob.obfs.password = profile.obfsPassword;
+    }
+    return ob;
+  }
+
+  return null;
 }
 
 function buildSingBoxConfig(profile) {
-  if (!profile) return "{}";
-  var outbound = {
-    "type": profile.type || "vless",
-    "tag": "proxy",
-    "server": profile.server,
-    "server_port": profile.server_port || 443,
-    "uuid": profile.uuid,
-    "domain_resolver": "local-dns"
-  };
-
-  if (profile.security === "tls" || profile.security === "reality" || profile.sni) {
-    outbound.tls = {
-      "enabled": true,
-      "server_name": profile.sni || profile.server,
-      "insecure": !!profile.insecure
-    };
-  }
-
-  if (profile.flow) {
-    outbound.flow = profile.flow;
-  }
+  var outbound = buildOutbound(profile);
+  if (!outbound) return "{}";
 
   var config = {
     "log": {

@@ -66,14 +66,26 @@ sudo ufw reload
 
 ---
 
+## Supported Protocols
+
+| Protocol | Link Format | Example |
+|---|---|---|
+| VLESS | `vless://uuid@server:port?params#tag` | Reality, XTLS-Vision, WS |
+| VMess | `vmess://base64json` | Standard V2Ray share format |
+| Trojan | `trojan://password@server:port?params#tag` | TLS password-based proxy |
+| Shadowsocks | `ss://base64(method:password)@server:port#tag` | SIP002 and legacy formats |
+| Hysteria 2 | `hy2://auth@server:port?params#tag` | Also accepts `hysteria2://` |
+
+---
+
 ## Managing Proxy Nodes & Profiles
 
 You can add and manage proxy servers in two ways:
 
 1. **Directly in the Popup Panel (Recommended)**:
    * Open the widget panel from your status bar.
-   * Click **Add VLESS Node**.
-   * Paste any `vless://...` link and click **Import & Apply**.
+   * Click **Add Node**.
+   * Paste any supported protocol link and click **Import & Apply**.
 
 2. **Editing `profiles.json`**:
    * Proxy profiles are saved at:
@@ -101,40 +113,36 @@ You can add and manage proxy servers in two ways:
     },
     {
       "id": "server-2",
-      "name": "Singapore Fiber Node",
-      "type": "vless",
+      "name": "Singapore VMess WS",
+      "type": "vmess",
       "server": "sg1.example.com",
-      "server_port": 444,
+      "server_port": 443,
       "uuid": "00000000-0000-0000-0000-000000000000",
-      "security": "tls",
-      "sni": "zoom.us",
-      "insecure": true
+      "security": "auto",
+      "tls": true,
+      "transport": "ws",
+      "wsPath": "/proxy"
+    },
+    {
+      "id": "server-3",
+      "name": "Tokyo Trojan",
+      "type": "trojan",
+      "server": "jp1.example.com",
+      "server_port": 443,
+      "password": "your-password",
+      "sni": "jp1.example.com"
     }
   ]
 }
 ```
 
-### Profile Options Reference
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `id` | string | Unique identifier for the profile. |
-| `name` | string | Display label shown in the bar widget dropdown. |
-| `type` | string | Protocol type (e.g. `"vless"`). |
-| `server` | string | Server domain name or IP address. |
-| `server_port` | integer | Port number (e.g. `443`, `444`). |
-| `uuid` | string | Client UUID. |
-| `security` | string | `"tls"` or `"none"`. |
-| `sni` | string | Server Name Indication (SNI). |
-| `insecure` | boolean | Set `true` if using self-signed certs / allow insecure TLS. |
-
 ---
 
 ## Security Notes
 
-* **Credential protection**: VLESS credentials and configuration data are passed to subprocesses via environment variables rather than command-line arguments. This prevents exposure through local process inspection (`/proc/<pid>/cmdline`).
+* **Credential protection**: Proxy credentials and configuration data are passed to subprocesses via environment variables rather than command-line arguments. This prevents exposure through local process inspection (`/proc/<pid>/cmdline`).
 * **Profile file permissions**: The profiles file (`~/.config/sing-box/profiles.json`) is written with mode `600` (owner read/write only) to protect stored credentials.
-* **System config access**: The `/etc/sing-box/config.json` file is group-writable by `wheel` rather than user-owned, limiting write access to admin group members only.
+* **System config access**: Configuration updates to `/etc/sing-box/config.json` are performed via `pkexec`, delegating authorization to the system's native Polkit agent. No insecure directory permissions are required.
 
 ---
 
@@ -147,7 +155,7 @@ You can add and manage proxy servers in two ways:
   * **Power Switch**: Start / stop the sing-box TUN service.
   * **Public IP Row**: View current IP or click the refresh button to re-fetch.
   * **Server Node**: Select active node (automatically applies and reloads).
-  * **Add VLESS Node**: Expandable section to paste and import any `vless://` link directly from the panel.
+  * **Add Node**: Expandable section to paste and import any supported protocol link directly from the panel.
 
 ---
 
@@ -173,8 +181,8 @@ omarchy-shell io.github.rizmi.singbox-vpn refresh
  
 * **"Fetching IP..." or timeout on connection**:
   * Ensure UFW firewall allows `tun0` inbound traffic (`sudo ufw allow in on tun0 && sudo ufw reload`).
-  * Check if your VLESS server domain resolves properly (`ping <server-domain>`).
-  * If using self-signed or expired certificates, ensure `allowInsecure: true` is enabled in the profile.
+  * Check if your server domain resolves properly (`ping <server-domain>`).
+  * If using self-signed or expired certificates, ensure `insecure: true` is enabled in the profile.
   * Check live service logs: `journalctl -u sing-box -f`.
 
 ---
@@ -183,12 +191,17 @@ omarchy-shell io.github.rizmi.singbox-vpn refresh
 
 ```
 ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn/
-├── Panel.qml        # QML widget UI, popup panel & IPC handler
-├── Service.qml      # Background service logic & process manager
-├── Model.js         # Configuration parser and serializer
-├── manifest.json    # Omarchy plugin manifest and settings schema
-├── README.md        # Documentation and usage guide
-└── LICENSE          # MIT License
+├── Panel.qml              # QML widget UI, popup panel & IPC handler
+├── Service.qml            # Background service logic & process manager
+├── Model.js               # Universal parser dispatcher & config builder
+├── ParseVless.js          # VLESS link parser
+├── ParseVmess.js          # VMess link parser
+├── ParseTrojan.js         # Trojan link parser
+├── ParseShadowsocks.js    # Shadowsocks link parser (SIP002 + legacy)
+├── ParseHysteria2.js      # Hysteria 2 link parser
+├── manifest.json          # Omarchy plugin manifest and settings schema
+├── README.md              # Documentation and usage guide
+└── LICENSE                # MIT License
 ```
 
 ---
