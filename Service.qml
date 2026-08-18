@@ -287,13 +287,20 @@ Item {
     onExited: function(exitCode) {
       var out = String(loadStdout.text || "").trim()
       var parsed = Model.parseJson(out)
-      if (parsed && Array.isArray(parsed.profiles) && parsed.profiles.length > 0) {
+      if (parsed && Array.isArray(parsed.profiles)) {
         root.profiles = parsed.profiles
-        root.currentProfileId = parsed.currentProfileId || parsed.profiles[0].id
-      } else {
+        root.currentProfileId = parsed.currentProfileId || (parsed.profiles.length > 0 ? parsed.profiles[0].id : "")
+        root.lastError = ""
+      } else if (exitCode !== 0 && out === "") {
         root.profiles = Model.defaultProfiles()
         root.currentProfileId = root.profiles[0].id
         root.saveProfilesToDisk()
+      } else {
+        root.profiles = []
+        root.currentProfileId = ""
+        root.lastError = "Invalid profiles file: " + root.profilesFile
+        root.actionStatus = root.lastError
+        actionStatusTimer.restart()
       }
     }
   }
