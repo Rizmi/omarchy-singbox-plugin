@@ -23,8 +23,6 @@ Before installing the widget, ensure your system has:
 
 ## Installation
 
-> **Important:** After installing, make sure to follow the **[Initial System Setup](#initial-system-setup)** section below to configure required permissions and file access.
-
 ### Option 1: Using `omarchy plugin` (Recommended)
 
 ```bash
@@ -45,8 +43,6 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
    omarchy plugin enable io.github.rizmi.singbox-vpn --section right
    ```
 
-3. Follow the **[Initial System Setup](#initial-system-setup)** section below to complete configuration.
-
 ---
 
 ## Removal
@@ -54,46 +50,14 @@ omarchy plugin add https://github.com/Rizmi/omarchy-singbox-plugin.git --enable
 ```bash
 omarchy plugin disable io.github.rizmi.singbox-vpn
 rm -rf ~/.config/omarchy/plugins/io.github.rizmi.singbox-vpn
-omarchy-shell shell rescanPlugins
+omarchy restart shell
 ```
 
 ---
 
-## Initial System Setup
+## Firewall Configuration (If using UFW)
 
-To allow the widget to start/stop the proxy and switch configs seamlessly without asking for root passwords each time, run these two quick setup steps once:
-
-### 1. Polkit Rule (Passwordless Service Control)
-Allow members of the `wheel` group to manage `sing-box.service` without entering a password:
-
-```bash
-sudo bash -c 'cat << "EOF" > /etc/polkit-1/rules.d/50-sing-box.rules
-polkit.addRule(function(action, subject) {
-    if (action.id == "org.freedesktop.systemd1.manage-units" &&
-        action.lookup("unit") == "sing-box.service" &&
-        subject.isInGroup("wheel")) {
-        return polkit.Result.YES;
-    }
-});
-EOF
-chmod 644 /etc/polkit-1/rules.d/50-sing-box.rules'
-```
-
-### 2. Configuration File Write Access
-Allow your user to update the sing-box configuration without full ownership of the system directory:
-
-```bash
-sudo mkdir -p /etc/sing-box
-sudo touch /etc/sing-box/config.json
-sudo chmod 664 /etc/sing-box/config.json
-sudo chgrp wheel /etc/sing-box /etc/sing-box/config.json
-sudo chmod 775 /etc/sing-box
-```
-
-> **Note:** The directory and config file are group-writable by `wheel` (your admin group). The sing-box service reads the config as root, so no ownership change to your user is needed. Your user account must be a member of the `wheel` group (standard on Omarchy/Arch).
-
-### 3. Firewall Configuration (If using UFW)
-If you have **UFW firewall** enabled, allow incoming packets on the `tun0` adapter so returned web and DNS responses from the proxy are not dropped:
+If you have **UFW firewall** enabled, allow incoming packets on the `tun0` adapter so returned web and DNS responses from the transparent proxy are not dropped:
 
 ```bash
 sudo ufw allow in on tun0

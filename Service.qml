@@ -99,7 +99,7 @@ Item {
 
     var cfgStr = Model.buildSingBoxConfig(profile)
     saveProcess.environment = { "SINGBOX_CFG": cfgStr }
-    saveProcess.command = ["bash", "-c", "printf '%s\\n' \"$SINGBOX_CFG\" > /etc/sing-box/config.json && (systemctl is-active sing-box >/dev/null && systemctl restart sing-box || true)"]
+    saveProcess.command = ["bash", "-c", "printf '%s\\n' \"$SINGBOX_CFG\" | pkexec tee /etc/sing-box/config.json >/dev/null && (systemctl is-active sing-box >/dev/null && systemctl restart sing-box || true)"]
     actionStatus = "Applying " + profile.name + "..."
     triggerSettledIpFetch("Switching node...")
     saveProcess.running = true
@@ -241,9 +241,19 @@ Item {
     id: saveProcess
     running: false
     command: []
+    stderr: StdioCollector { id: saveStderr; waitForEnd: true }
     onExited: function(exitCode) {
+      if (exitCode !== 0) {
+        var err = String(saveStderr.text || "Authentication / update failed").trim()
+        root.lastError = err.length > 80 ? err.substring(0, 77) + "..." : err
+        root.actionStatus = root.lastError
+        actionStatusTimer.restart()
+      } else {
+        root.lastError = ""
+        root.actionStatus = "Applied " + root.currentProfileName
+        actionStatusTimer.restart()
+      }
       root.refresh()
-      actionStatusTimer.restart()
     }
   }
 
