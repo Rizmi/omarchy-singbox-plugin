@@ -163,6 +163,7 @@ Panel {
 
             Text {
               text: singbox.publicIp
+              textFormat: Text.PlainText
               color: singbox.active ? root.foreground : root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.bodySmall
@@ -211,6 +212,7 @@ Panel {
           visible: singbox.actionStatus !== "" || singbox.lastError !== ""
           width: parent.width
           text: singbox.actionStatus !== "" ? singbox.actionStatus : singbox.lastError
+          textFormat: Text.PlainText
           color: singbox.lastError !== "" && singbox.actionStatus === "" ? root.urgent : root.dim
           font.family: root.fontFamily
           font.pixelSize: Style.font.bodySmall

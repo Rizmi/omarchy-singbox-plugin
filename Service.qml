@@ -80,6 +80,7 @@ Item {
   function selectProfile(profileId) {
     if (!profileId || profileId === currentProfileId) return
     currentProfileId = profileId
+    saveProfilesToDisk()
     applyCurrentProfile()
   }
 
@@ -126,8 +127,9 @@ Item {
     if (!found) list.push(parsed)
 
     profiles = list
+    currentProfileId = parsed.id
     saveProfilesToDisk()
-    selectProfile(parsed.id)
+    applyCurrentProfile()
     actionStatus = "Added node: " + parsed.name
     actionStatusTimer.restart()
     return true
@@ -162,7 +164,7 @@ Item {
       profiles: profiles
     }, null, 2)
     profileSaveProcess.environment = { "SINGBOX_PROFILES": data }
-    profileSaveProcess.command = ["bash", "-c", "mkdir -p ~/.config/sing-box && printf '%s\\n' \"$SINGBOX_PROFILES\" > '" + profilesFile + "' && chmod 600 '" + profilesFile + "'"]
+    profileSaveProcess.command = ["bash", "-c", "(umask 077; mkdir -p ~/.config/sing-box && printf '%s\\n' \"$SINGBOX_PROFILES\" > '" + profilesFile + "' && chmod 600 '" + profilesFile + "')"]
     profileSaveProcess.running = true
   }
 
@@ -289,11 +291,22 @@ Item {
       var parsed = Model.parseJson(out)
       if (parsed && Array.isArray(parsed.profiles)) {
         root.profiles = parsed.profiles
-        root.currentProfileId = parsed.currentProfileId || (parsed.profiles.length > 0 ? parsed.profiles[0].id : "")
+        var targetId = parsed.currentProfileId || ""
+        var found = false
+        for (var i = 0; i < parsed.profiles.length; i++) {
+          if (parsed.profiles[i].id === targetId) {
+            found = true
+            break
+          }
+        }
+        root.currentProfileId = found ? targetId : (parsed.profiles.length > 0 ? parsed.profiles[0].id : "")
+        if (!found && parsed.profiles.length > 0) {
+          root.saveProfilesToDisk()
+        }
         root.lastError = ""
       } else if (exitCode !== 0 && out === "") {
-        root.profiles = Model.defaultProfiles()
-        root.currentProfileId = root.profiles[0].id
+        root.profiles = []
+        root.currentProfileId = ""
         root.saveProfilesToDisk()
       } else {
         root.profiles = []
